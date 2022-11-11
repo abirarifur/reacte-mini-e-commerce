@@ -134,6 +134,7 @@ export default function Product() {
       setQuantity(quantity + 1);
     }
   };
+  const handleClick = () => {};
   return (
     <Container>
       <Navbar />
@@ -162,7 +163,7 @@ export default function Product() {
             </Filter>
             <Filter>
               <FilterTitle>Size</FilterTitle>
-              <FilterSize onChange={(e) => setColor(e.target.value)}>
+              <FilterSize onChange={(e) => setSize(e.target.value)}>
                 {product.size?.map((size, i) => {
                   return <FilterSizeOption key={i}>{size}</FilterSizeOption>;
                 })}
@@ -176,7 +177,7 @@ export default function Product() {
               <Amount>{quantity}</Amount>
               <Add onClick={() => handleQuantity("inc")} />
             </AmountContainer>
-            <Button>Add To Cart</Button>
+            <Button onClick={handleClick}>Add To Cart</Button>
           </AddContainer>
         </InfoContainer>
       </Wrapper>
