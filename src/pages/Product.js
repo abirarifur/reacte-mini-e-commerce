@@ -1,11 +1,13 @@
 import { Add, Remove } from "@mui/icons-material";
 import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Announcement from "../components/Announcement";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
 import Newsletter from "../components/Newsletter";
+import { addProduct } from "../redux/cartRedux";
 import { publicRequest } from "../requestMethod";
 import { mobile } from "../responsive";
 
@@ -117,6 +119,7 @@ export default function Product() {
   const [quantity, setQuantity] = useState(1);
   const [color, setColor] = useState("");
   const [size, setSize] = useState("");
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const getProduct = async () => {
@@ -126,7 +129,7 @@ export default function Product() {
       } catch (error) {}
     };
     getProduct();
-  });
+  }, [id]);
   const handleQuantity = (type) => {
     if (type === "dec") {
       if (quantity > 1) setQuantity(quantity - 1);
@@ -134,7 +137,9 @@ export default function Product() {
       setQuantity(quantity + 1);
     }
   };
-  const handleClick = () => {};
+  const handleClick = () => {
+    dispatch(addProduct({ ...product, quantity, color, size }));
+  };
   return (
     <Container>
       <Navbar />

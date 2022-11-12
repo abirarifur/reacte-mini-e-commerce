@@ -1,9 +1,16 @@
 import { Add, Remove } from "@mui/icons-material";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import StripeCheckout from "react-stripe-checkout";
 import styled from "styled-components";
 import Announcement from "../components/Announcement";
 import Footer from "../components/Footer";
 import Navbar from "../components/Navbar";
+import { userRequest } from "../requestMethod";
 import { mobile } from "../responsive";
+
+const KEY = process.env.REACT_APP_STRIPE;
 
 const Container = styled.div``;
 const Wrapper = styled.div`
@@ -145,6 +152,27 @@ const Button = styled.button`
 `;
 
 export default function Cart() {
+  const cart = useSelector((state) => state.cart);
+  const [stripeToken, setStripeToken] = useState(null);
+  const navigate = useNavigate();
+  const onToken = (token) => {
+    setStripeToken(token);
+  };
+  useEffect(() => {
+    const makeRequest = async () => {
+      try {
+        const res = await userRequest.post("/checkout/payment", {
+          tokenId: stripeToken.id,
+          amount: cart.total * 100,
+        });
+        navigate("/success", { data: res.data });
+      } catch (error) {
+        console.log("post not done");
+      }
+    };
+    stripeToken && cart.total >= 1 && makeRequest();
+  }, [stripeToken, cart.total, navigate]);
+  console.log(stripeToken);
   return (
     <Container>
       <Navbar />
@@ -161,63 +189,49 @@ export default function Cart() {
         </Top>
         <Bottom>
           <Info>
-            <Product>
-              <ProductDetail>
-                <Image src="https://static.nike.com/a/images/t_PDP_864_v1/f_auto,b_rgb:f5f5f5/0c6e5df6-4028-4061-b68e-98a945df814c/air-jordan-1-low-og-shoes-5L7RmC.png" />
-                <Details>
-                  <ProductName>
-                    <b>Product:</b>JESSIE THUNDER SHOES
-                  </ProductName>
-                  <ProductId>
-                    <b>ID:</b>13213245
-                  </ProductId>
-                  <ProductColor color="black" />
-                  <ProductSize>
-                    <b>Size:</b>37.5
-                  </ProductSize>
-                </Details>
-              </ProductDetail>
-              <PriceDetail>
-                <ProductAmountContainer>
-                  <Add />
-                  <ProductAmount>2</ProductAmount>
-                  <Remove />
-                </ProductAmountContainer>
-                <ProductPrice>$ 30</ProductPrice>
-              </PriceDetail>
-            </Product>
-            <Hr />
-            <Product>
-              <ProductDetail>
-                <Image src="https://static.nike.com/a/images/t_PDP_864_v1/f_auto,b_rgb:f5f5f5/4429a535-2333-423d-9473-eb728ad603b7/air-zoom-pegasus-39-mens-road-running-shoes-rZmWzq.png" />
-                <Details>
-                  <ProductName>
-                    <b>Product:</b>JESSIE THUNDER SHOES
-                  </ProductName>
-                  <ProductId>
-                    <b>ID:</b>13213245
-                  </ProductId>
-                  <ProductColor color="black" />
-                  <ProductSize>
-                    <b>Size:</b> 35.5
-                  </ProductSize>
-                </Details>
-              </ProductDetail>
-              <PriceDetail>
-                <ProductAmountContainer>
-                  <Add />
-                  <ProductAmount>1</ProductAmount>
-                  <Remove />
-                </ProductAmountContainer>
-                <ProductPrice>$ 50</ProductPrice>
-              </PriceDetail>
-            </Product>
+            {cart.products.map((product, index) => {
+              return (
+                <>
+                  <Product key={index}>
+                    <ProductDetail>
+                      <Image src={product.img} />
+                      <Details>
+                        <ProductName>
+                          <b>Product:</b>
+                          {product.title}
+                        </ProductName>
+                        <ProductId>
+                          <b>ID:</b>
+                          {product.id}
+                        </ProductId>
+                        <ProductColor color={product.color} />
+                        <ProductSize>
+                          <b>Size:</b>
+                          {product.size}
+                        </ProductSize>
+                      </Details>
+                    </ProductDetail>
+                    <PriceDetail>
+                      <ProductAmountContainer>
+                        <Add />
+                        <ProductAmount>{product.quantity}</ProductAmount>
+                        <Remove />
+                      </ProductAmountContainer>
+                      <ProductPrice>
+                        $ {product.price * product.quantity}
+                      </ProductPrice>
+                    </PriceDetail>
+                  </Product>
+                  <Hr />
+                </>
+              );
+            })}
           </Info>
           <Summery>
             <SummeryTitle>ORDER SUMMERY</SummeryTitle>
             <SummeryItem>
               <SummeryItemText>Subtotal</SummeryItemText>
-              <SummeryItemPrice>$ 80</SummeryItemPrice>
+              <SummeryItemPrice>$ {cart.total}</SummeryItemPrice>
             </SummeryItem>
             <SummeryItem>
               <SummeryItemText>Estimated Shipping</SummeryItemText>
@@ -229,9 +243,20 @@ export default function Cart() {
             </SummeryItem>
             <SummeryItem type="total">
               <SummeryItemText>Total</SummeryItemText>
-              <SummeryItemPrice>$ 80</SummeryItemPrice>
+              <SummeryItemPrice>$ {cart.total}</SummeryItemPrice>
             </SummeryItem>
-            <Button>Checkout Now</Button>
+            {/* <Button>Checkout Now</Button> */}
+            <StripeCheckout
+              name="Mini-E-commerce"
+              billingAddress
+              shippingAddress
+              description={`Your total is ${cart.total}`}
+              amount={cart.total * 100}
+              token={onToken}
+              stripeKey={KEY}
+            >
+              <Button>Checkout Now</Button>
+            </StripeCheckout>
           </Summery>
         </Bottom>
       </Wrapper>

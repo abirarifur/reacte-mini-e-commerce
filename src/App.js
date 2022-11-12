@@ -11,9 +11,11 @@ import {
   Route,
   Routes,
 } from "react-router-dom";
+import Success from "./pages/Success";
+import { useSelector } from "react-redux";
 
 function App() {
-  const user = true;
+  const user = useSelector((state) => state.user.currentUser);
   return (
     <Router>
       <Routes>
@@ -29,6 +31,10 @@ function App() {
         <Route
           path="/register"
           element={user ? <Navigate to="/" replace={true} /> : <Register />}
+        />
+        <Route
+          path="/success"
+          element={user ? <Navigate to="/" replace={true} /> : <Success />}
         />
       </Routes>
     </Router>
